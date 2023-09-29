@@ -1,4 +1,4 @@
-En primer lugar debo recordar a todos los usuarios que el trabajo no es mio. Solamente traduje los textos de los instaladores y de esre README.md
+En primer lugar debo recordar a todos los usuarios que el trabajo no es mio. Solamente traduje los textos de los instaladores y de este README.md
 Agradecimientos por el trabajo realizado a [DarkElvenAngel](https://gitlab.com/DarkElvenAngel) podeis clonar el repositorio original usando cualquiera de los metodos siguientes:
 
 ### Clonado con SSH 
@@ -29,7 +29,29 @@ https://gitlab.com/DarkElvenAngel/argononed.git
 
 Si usas este repositorio con el idioma español, e he permitido añadirle un archivo que configura el ventilador al 33% al alcanzar la temperatura de 40ºC al 66% si supera los 50ºC y al 99% si pasa de los 60º. Así como la hysteresis en su valor 3 de un máximo de 10
 
-Una vez hecha la instalacion que se detalla en el texto original traducido en la seccion [Cómo instalar](#comoinstalar)
+## CONTENIDO EXTRA
+
+Una vez hecha la instalacion como se detalla en el texto original traducido en la seccion [Cómo instalar](#comoinstalar), Si decidiste cloar o sescargar el repositorio original, Puedes descargar este script introduciendo en la terminal las siguientes instrucciones:
+
+```bash
+
+clear
+cd argononed 
+sudo wget https://raw.githubusercontent.com/proyectopy/argononesp/main/argonone.sh &>/dev/null
+sudo chmod +x argonone.sh
+./argonone.sh
+
+```
+Si decidiste usar este repositorio en español, el script se ha descargado ya ejecutalo con las siguientes instrucciones desde la terminal:
+
+```bash
+
+clear
+cd argononed 
+sudo chmod +x argonone.sh
+./argonone.sh
+
+```
 
 
 # <a id="arriba"></a> Argon One Daemon
