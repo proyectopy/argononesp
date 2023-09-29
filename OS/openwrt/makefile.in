@@ -1,0 +1,22 @@
+SERVICE_FILE=OS/openwrt/argononed
+SERVICE_FILE_PERMISSIONS=744
+SERVICE_PATH=/etc/init.d/argononed
+SHUTDOWN_FILE=$(BIN_SHUTDOWN)
+SHUTDOWN_PATH=/usr/sbin/shutdown_argonone
+SERVICE_ENABLE=/etc/init.d/argononed enable
+SERVICE_DISABLE=/etc/init.d/argononed disable
+SERVICE_START=/etc/init.d/argononed start
+SERVICE_STOP=/etc/init.d/argononed stop
+LFLAGS3 = /usr/lib/libargp.a
+LFLAGS =
+CFLAGS += -DLOCK_FILE='"/tmp/run/argononed.pid"'
+
+
+all:: $(BIN_DAEMON) $(BIN_SHUTDOWN) $(BIN_CLI) $(OVERLAY)
+	md5sum  build/$(BIN_DAEMON) >> build/checksum
+	md5sum  build/$(BIN_SHUTDOWN) >> build/checksum
+	md5sum  build/$(BIN_CLI) >> build/checksum
+	md5sum  build/$(OVERLAY) >> build/checksum
+
+clean::
+	-@$(RM) build/checksum 2>/dev/null || true
