@@ -1,0 +1,119 @@
+#!/bin/bash
+# MIT License
+
+# Copyright (c) 2020 DarkElvenAngel
+
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+[[ -a makefile.conf ]] && { echo -e "\e[32mERROROR\e[0;1m:  makefile.conf ya existe. ejecuta make mrproper first!\e[0m"; exit 1;}
+[[ -d build ]] || mkdir build
+echo -e "\e[1;37mCONFIGURACION DEL DAEMON DE LA CARCASA ARGON ONE ...\e[0m"
+if [[ -n $TARGET_DISTRO ]]
+then
+    DISTRO=$TARGET_DISTRO
+else
+    DISTRO=$(awk -F"=" '$1=="ID"{print $2}' /etc/os-release | sed 's/\"//g')
+fi
+STATUS=UNKNOWN
+I2CHELPER=0
+PACKAGESYS=0
+INITSYS="SYSTEMD"
+[[ ! -n $BOOTLOC ]] && BOOTLOC="/boot"
+echo -ne "\e[1mVerificacion del SO [$DISTRO] : \e[0m"
+if [[ -d "OS/$DISTRO" ]] 
+then 
+    [[ -f "OS/$DISTRO/OS.conf" ]] && source OS/$DISTRO/OS.conf
+    case $STATUS in
+    "OK")
+        COLOUR=32
+        ;;
+    "EXPERIMENTAL")
+        COLOUR="1;33"
+        ;;
+    *)
+        COLOUR=31
+        ;;
+    esac
+    echo -e "\e[0;${COLOUR}m${STATUS}\e[0m" 
+else
+    echo -e "\e[1;33mADVERTENCIA: SO DESCONOCIDO, el instalador se detendrá.\e[0m"
+fi
+
+echo -e "\e[1mCOMPROBACION DEL SISTEMA\e[0m"
+echo -n "gcc : "
+command -v gcc &> /dev/null && GCC=1 || GCC=0
+[[ $GCC == 1 ]] && echo -e "\e[32mCORRECTO\e[0m" || echo -e "\e[32mERROR\e[0m"
+echo -n "dtc : "
+command -v dtc &> /dev/null && DTC=1 || DTC=0
+[[ $DTC == 1 ]] && echo -e "\e[32mCORRECTO\e[0m" || echo -e "\e[32mERROR\e[0m"
+echo -n "make : "
+command -v make &> /dev/null && MAKE=1 || MAKE=0
+[[ $MAKE == 1 ]] && echo -e "\e[32mCORRECTO\e[0m" || echo -e "\e[32mERROR\e[0m"
+if [[ $PACKAGESYS == 1 ]]
+then
+    I2CBUS=1
+else
+    echo -n "Comprobacion del bus I2C : "
+    [[ -a /dev/i2c-1 ]] && { I2CBUS=1 ; echo -e "\e[32mACTIVADO\e[0m";} || { I2CBUS=0 ; echo -e "\e[1mNO ACTIVADO\e[0m";}
+    echo -e "\e[1;37mCOMPROBACIONES DEL SISTEMA OPCIONALES\e[0m"
+    echo -n "aurocompletado-bash : "
+    [[ -d /etc/bash_completion.d ]] && { AUTOC=1 ; echo -e "\e[32mCORRECTO\e[0m";} || { AUTOC=0 ; echo -e "\e[1mNO INSTALADO\e[0m";}
+    echo -n "logrotate : "
+    command -v logrotate  &> /dev/null && LOGROTATE=1 || LOGROTATE=0
+    [[ $LOGROTATE == 1 ]] && echo -e "\e[32mINSTALADO\e[0m" || echo -e "\e[1mNO INSTALADO\e[0m"
+fi
+echo -ne "\e[1mComprobación de dependencias :\e[0m"
+if [[ $GCC -eq 1 && $DTC -eq 1 && $MAKE -eq 1 ]]
+then
+    echo -e "\e[32m Exitosa\e[0m" 
+else    
+    echo -e "\e[31m ¡Fallido! Instale la(s) herramienta(s) que faltan\e[0m"
+    exit 1
+fi
+
+echo "# NO EDITAR ESTE ARCHIVO DE FORMA MANUAL EJECUTE ./configure" > makefile.conf
+echo "CONFIGURADO=1" >> makefile.conf
+echo "OS=${DISTRO}" >> makefile.conf
+echo "BOOTLOC=${BOOTLOC}" >> makefile.conf
+echo "INITSYS=${INITSYS}" >> makefile.conf
+echo "I2CHELPER=${I2CHELPER}" >> makefile.conf
+if [[ $PACKAGESYS == 1 ]]
+then
+    echo "PACKAGESYS=ACTIVO" >> makefile.conf
+else
+    echo "AUTOCOMP=${AUTOC}" >> makefile.conf
+    echo "I2CBUS=${I2CBUS}" >> makefile.conf
+    echo "LOGROTATE=${LOGROTATE}" >> makefile.conf
+fi
+if [[ -n $DISABLE_POWERBUTTON ]]
+then
+    echo -e "El boton de encendido está \e[1mDESACTIVADO\e[0m"
+    echo "DISABLE_POWER_BUTTON_SUPPORT=1" >> makefile.conf
+fi
+if [[ -n $USE_SYSFS_TEMP ]]
+then
+    echo -e "Daemon usará \e[1m${USE_SYSFS_TEMP}\e[0m como sensor de temperatura"
+    echo "USE_SYSFS_TEMP=${USE_SYSFS_TEMP}" >> makefile.conf
+fi
+if [[ -n $RUN_IN_FOREGROUND ]]
+then
+    echo -e "Daemon seejecutará solo en primer plano."
+    echo "RUN_IN_FOREGROUND=1" >> makefile.conf
+fi
+exit 0
