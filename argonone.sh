@@ -4,7 +4,7 @@
 # Script: argonone.sh
 # Descripcion: Ajustes para el ventilador
 # Argumentoss: N/A
-#Creacion/Actualizacion: DIC2021/SEPT2022
+#Creacion/Actualizacion: SEPT2023/SEPT2023
 # Version: V1.1.1
 # Author: Wildsouth
 # Email: wildsout@gmail.com
