@@ -35,61 +35,60 @@ echo "_________________________________________________________"
 [[ -n $TARGET_DISTRO ]] && { ./configure || exit 1; }
 [[ -f makefile.conf ]] || { echo -e "\e[31mERROR\e[0m:  Ejecuta \e[1mTARGET_DISTRO=<NAME> ./package.sh\e[0m first"; exit 1; }
 source makefile.conf
-[[ -a OS/${DISTRO}/pkg_list ]] || { echo "ERROR:  \"${DISTRO}\" doesn't have a package list file, cannot generate package"; exit 1;}
+[[ -a OS/${DISTRO}/pkg_list ]] || { echo "ERROR:  \"${DISTRO}\" no tiene un archivo de lista de paquetes, no puede generar el paquete"; exit 1;}
 OUT_FILENAME="build/${DISTRO}.pkg.sh"
 
 
 
-
-echo -ne "\e[37;1mINFO:\e[0m  Preparing build environment ... "
-make clean &> /dev/null && echo -e "\e[32mOK\e[0m" || { echo -e "\e[31mERR\e[0m\n\tSomething has gone wrong with \"make clean\" "; exit 1;}
+echo -ne "\e[37;1mINFO:\e[0m  Preparando el entorno ... "
+make clean &> /dev/null && echo -e "\e[32mOK\e[0m" || { echo -e "\e[31mERR\e[0m\n\tAlgo no fue bien con \"make clean\" "; exit 1;}
 rm ${OUT_FILENAME} &> /dev/null
-echo -ne "\e[37;1mINFO:\e[0m  Building Source Files ... "
-make &> /dev/null && echo -e "\e[32mOK\e[0m" || { echo -e "\e[31mERR\e[0m\n\tsomething has gone wrong with \"make\""; exit 1;}
-echo -ne "\e[37;1mINFO:\e[0m  Checking files ... "
+echo -ne "\e[37;1mINFO:\e[0m  Creando los archivos ... "
+make &> /dev/null && echo -e "\e[32mOK\e[0m" || { echo -e "\e[31mERR\e[0m\n\tAlgo no fue bien con \"make\""; exit 1;}
+echo -ne "\e[37;1mINFO:\e[0m  Comprobando los archivos ... "
 while read line; do
 # reading each line
-[[ -f $line ]] || { echo -e "\e[31mERR\nERROR\e[0m:  \e[1m${line}\e[0m File Not Found!"; exit 1; }
+[[ -f $line ]] || { echo -e "\e[31mERR\nERROR\e[0m:  \e[1m${line}\e[0m Archivo no encontrado!"; exit 1; }
 done < OS/${DISTRO}/pkg_list
 echo -e "\e[32mOK\e[0m"
 
-echo -ne "\e[37;1mINFO:\e[0m  Building Installer ... "
+echo -ne "\e[37;1mINFO:\e[0m  Creando el instalador ... "
 cat > ${OUT_FILENAME} <<SCRIPT_TOP
 #!/bin/sh
-echo "INFO:  ArgonOne Daemon self extracting installer"
+echo "INFO: Instalador autoextraíble ArgonOne Daemon"
 DATA_START=\$((\`grep -an "^DATA_CONTENT$" \$0 | cut -d: -f1\` + 1))
 
 F_EXTRACT()
 {
-	echo -n "INFO:  Extracting files ... "
+	echo -n "INFO:  Extrayendo archivos ... "
 	tail -n+\${DATA_START} \$0 | tar zxf - 2>/dev/null && echo "OK" || { echo "ERR"; exit 1; }
 }
-echo -n "INFO:  Checking installer ... "
+echo -n "INFO:  Comprrobando instalador ... "
 #INSTALLER
 
-type F_INSTALL &>/dev/null && echo "OK" || { echo -e "ERR\nERROR:  INSTALLER NOT FOUND"; exit 1;}
-echo "INFO:  Starting installer"
+type F_INSTALL &>/dev/null && echo "OK" || { echo -e "ERR\nERROR:  INSTALADOR NO ENCONTRADO"; exit 1;}
+echo "INFO:  Iniciando instalador"
 F_INSTALL
 exit 0
 DATA_CONTENT
 SCRIPT_TOP
-[[ -f OS/${DISTRO}/pkg_install.sh ]] || { echo -e "\e[31mERR\nERROR\e[0m:  \e[1mOS/${DISTRO}/pkg_install.sh\e[0m NOT FOUND"; exit 1;}
+[[ -f OS/${DISTRO}/pkg_install.sh ]] || { echo -e "\e[31mERR\nERROR\e[0m:  \e[1mOS/${DISTRO}/pkg_install.sh\e[0m NO SE HA ENCONTRADO"; exit 1;}
 sed -i -e "/#INSTALLER/r OS/${DISTRO}/pkg_install.sh" -e '/#INSTALLER/d' ${OUT_FILENAME}
 echo -e "\e[32mOK\e[0m"
 # tar -cvf allfiles.tar -T OS/${DISTRO}/pkg_list
-echo -ne "\e[37;1mINFO:\e[0m  Packing files ... "
+echo -ne "\e[37;1mINFO:\e[0m  Empaquetando archivos ... "
 tar -T OS/${DISTRO}/pkg_list -czf - >> ${OUT_FILENAME} && echo -e "\e[32mOK\e[0m"
 
 chmod +x ${OUT_FILENAME}
 
-echo -ne "\e[37;1mINFO:\e[0m  Verify package ... "
+echo -ne "\e[37;1mINFO:\e[0m  Verificando el paquete ... "
 
 while read line; do
 # reading each line
-tail -n+$((`grep -an "^DATA_CONTENT$" ${OUT_FILENAME} | cut -d: -f1` + 1)) ${OUT_FILENAME} | tar tzv $line &> /dev/null || { echo -e "\e[31mERR\nERROR\e[0m:  \e[1m${line}\e[0m File Not Found!"; exit 1; }
+tail -n+$((`grep -an "^DATA_CONTENT$" ${OUT_FILENAME} | cut -d: -f1` + 1)) ${OUT_FILENAME} | tar tzv $line &> /dev/null || { echo -e "\e[31mERR\nERROR\e[0m:  \e[1m${line}\e[0m Archivo no encontrado!"; exit 1; }
 done < OS/${DISTRO}/pkg_list
 echo -e "\e[32mOK\e[0m"
 
-echo -e "\e[37;1mINFO\e[0m:  Package \e[1m${OUT_FILENAME}\e[0m is complete "
+echo -e "\e[37;1mINFO\e[0m:  Paquete \e[1m${OUT_FILENAME}\e[0m finalizado "
 
 exit 0
